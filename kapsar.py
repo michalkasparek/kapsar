@@ -20,12 +20,6 @@ import os
 from newspaper import Article
 import pandas as pd
 
-def directory(directory):
-    if os.path.exists(directory):
-        pass
-    else:
-        os.makedirs(directory)
-
 def getAllLines():
 
     try:
@@ -44,6 +38,12 @@ def getAllLines():
             pass
 
     return allLines
+
+def directory(directory):
+    if os.path.exists(directory):
+        pass
+    else:
+        os.makedirs(directory)
 
 class Kapsar: # handles & downloads articles
 
