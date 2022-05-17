@@ -4,7 +4,7 @@
 A simple tool for downloading all the articles you've ever read in Pocket (formerly Read It Later). 
 Just place the script in the same folder as your ril_export.html file. (You can get it at http://getpocket.com/export.)
 
-__version__ = "0.1"
+__version__ = "0.1.1"
 __author__ = "Michal Kašpárek"
 __email__ = "michal.kasparek@gmail.com"
 __license__ = "MIT"
@@ -41,7 +41,7 @@ for line in pocketExport:
     else: 
         pass
 
-class Kapsar: # basic class for handling & downloading articles
+class Kapsar: # handles & downloads articles
 
     def __init__(self, cleanedURL, rawTimestamp):
 
@@ -153,22 +153,7 @@ def archive(): # parses all lines in ril_export.html, checks for already downloa
         else:
             newLines.append([parsedLine.cleanedURL, parsedLine.rawTimestamp])
     
-    totalArticles = len(allLines)
-    newArticles = len(newLines)
-    progressArticles = 0
-
-    newLines.reverse()
-
-    print(f"You can end the script safely anytime with CTRL+BREAK or simply closing the terminal window, and resume it later.\nCTRL+C will result in marking undownloaded articles as downloaded.\n\nArticles: {totalArticles} total, {newArticles} to download\n")
-
-    for x in newLines:
-        progressArticles += 1
-        cleanedURL = x[0]
-        rawTimestamp = x[1]
-        print(f"{progressArticles}/{newArticles} {cleanedURL}")
-        Kapsar(cleanedURL, rawTimestamp).steal()
-        with open(os.path.join("log", "archived.txt"), mode="a+", encoding="utf-8") as archiveExpand:
-            archiveExpand.write(cleanedURL + "\n")
+    lineByLine(newLines, False)
 
 def retry():
 
@@ -190,21 +175,34 @@ def retry():
         if parsedLine.cleanedURL in retryURLs:
             retryLines.append([parsedLine.cleanedURL, parsedLine.rawTimestamp])
 
-    totalArticles = len(retryLines)
-    progressArticles = 0
+    lineByLine(retryLines, True)
 
-    print(f"You can end the script safely anytime with CTRL+BREAK or simply closing the terminal window, and resume it later.\nCTRL+C will result in marking undownloaded articles as downloaded.\n\nTrying to redownload {totalArticles} articles.\n")
+def lineByLine(lines, retried):
 
-    for x in retryLines:
+    totalArticles = len(lines)
+    progressArticles = 0    
+
+    print(f"You can end the script safely anytime with CTRL+BREAK or simply closing the terminal window, and resume it later.\nCTRL+C will result in marking undownloaded articles as downloaded.\n\n{totalArticles} articles to download\n")
+
+    for x in lines:
         progressArticles += 1
         cleanedURL = x[0]
         rawTimestamp = x[1]
         print(f"{progressArticles}/{totalArticles} {cleanedURL}")
         Kapsar(cleanedURL, rawTimestamp).steal()
-        with open(os.path.join("log", "retried.txt"), mode="a+", encoding="utf-8") as archiveExpand:
-            archiveExpand.write(cleanedURL + "\n")
+
+        if retried == False:
+            with open(os.path.join("log", "retried.txt"), mode="a+", encoding="utf-8") as archiveExpand:
+                archiveExpand.write(cleanedURL + "\n")
+        else:
+            with open(os.path.join("log", "archived.txt"), mode="a+", encoding="utf-8") as archiveExpand:
+                archiveExpand.write(cleanedURL + "\n")
+
+    print("Done.")
 
 def stats():
+
+    print("Generating stats…")
 
     directory("stats")
 
@@ -257,9 +255,14 @@ def stats():
     topSourcesYearly = topSourcesYearly.groupby(["domain", "year"])["domain"].count().unstack()
     topSourcesYearly.to_csv(os.path.join("stats", "topSourcesYearly.csv"), float_format="%g")
 
+    print("Done.")
+
 if len(sys.argv) == 1:
+
     print("-a for archivation, -r to re-check the broken links, -s for stats")
+
 else:
+
     if "-a" in sys.argv:
         archive()
     if "-r" in sys.argv:
