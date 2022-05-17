@@ -26,20 +26,24 @@ def directory(directory):
     else:
         os.makedirs(directory)
 
-try:
-    with open("ril_export.html", mode="r", encoding="utf-8") as pocketExport:
-        pocketExport = pocketExport.read().split("<h1>Read Archive</h1>")[1].splitlines()
-except:
-    print("Can't load ril_export.html. Get the file at http://getpocket.com/export and save it to the same folder as kapsar.py.")
-    exit()
+def getAllLines():
 
-allLines = []
+    try:
+        with open("ril_export.html", mode="r", encoding="utf-8") as pocketExport:
+            pocketExport = pocketExport.read().split("<h1>Read Archive</h1>")[1].splitlines()
+    except:
+        print("Can't load ril_export.html. Get the file at http://getpocket.com/export and save it to the same folder as kapsar.py.")
+        exit()
 
-for line in pocketExport:
-    if "<li><a href" in line:
-        allLines.append(line)
-    else: 
-        pass
+    allLines = []
+
+    for line in pocketExport:
+        if "<li><a href" in line:
+            allLines.append(line)
+        else: 
+            pass
+
+    return allLines
 
 class Kapsar: # handles & downloads articles
 
@@ -262,6 +266,8 @@ if len(sys.argv) == 1:
     print("-a for archivation, -r to re-check the broken links, -s for stats")
 
 else:
+
+    allLines = getAllLines()
 
     if "-a" in sys.argv:
         archive()
